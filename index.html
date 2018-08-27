@@ -1,27 +1,86 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <script src="jquery.js"></script>
-    <script src="data_generator.js"></script>
-  </head>
-  <body>
-    <script>
 
-      $(document).ready(function(){
-        var $body = $('body');
-        $body.html('');
+<head>
+  <link rel="stylesheet" href="style.css">
+  <script src="jquery.js"></script>
+  <script src="data_generator.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/locale/en-ca.js"></script>
+</head>
 
-        var index = streams.home.length - 1;
-        while(index >= 0){
-          var tweet = streams.home[index];
-          var $tweet = $('<div></div>');
-          $tweet.text('@' + tweet.user + ': ' + tweet.message);
-          $tweet.appendTo($body);
-          index -= 1;
+<body>
+  <script>
+    var user;
+    function refreshTweetList() {
+      clearTweetList();
+
+      if (!user) {
+        for (let tweet of streams.home) {
+          addTweetToList(tweet);
         }
+      } else {
+        for (let tweet of streams.users[user]) {
+          addTweetToList(tweet);
+        }
+      }
+    }
+    function clearTweetList() {
+      var $body = $('body');
+      $body.html("");
 
+      $title = $('<a class="title" href="#">Twittler</a>');
+      $title.click(function () {
+        user = undefined;
+        refreshTweetList();
       });
 
-    </script>
-  </body>
+      $body.append($title);
+      if (user) {
+        $body.append('<h2>@' + user + '</h2>');
+      }
+      $body.append('<div class="tweet-list"></div>');
+    }
+    function addTweetToList(tweet) {
+      var $tweetList = $('.tweet-list');
+      var $tweetBox = $('<div class="tweet-box"></div>');
+
+      //Setup header
+      var $tweetHeader = $('<div class="tweet-header"></div>');
+      var $tweetName = $('<a class="big-text" href="#"></a>');
+      $tweetName.click(function () {
+        user = tweet.user
+        refreshTweetList();
+      });
+
+      var $tweetDate = $('<p class="small-text"></p>');
+      var $tweetMessage = $('<div class="tweet"></div>');
+
+      $tweetName.text('@' + tweet.user);
+      $tweetDate.text(moment(tweet.created_at).fromNow());//moment(tweet.created_at).fromNow());
+      $tweetMessage.text(tweet.message);
+
+      //Add tweetName and tweetDate to the tweetHeader
+      $tweetName.appendTo($tweetHeader);
+      $tweetDate.appendTo($tweetHeader);
+
+      //Add tweetHeader to the tweetBox
+      $tweetHeader.appendTo($tweetBox);
+
+      //Add tweetMessage to tweetBox
+      $tweetMessage.appendTo($tweetBox);
+
+
+      $tweetBox.prependTo($tweetList);
+    }
+
+    $(document).ready(function () {
+      refreshTweetList();
+
+      setInterval(refreshTweetList, 1000);
+    });
+
+  </script>
+</body>
+
 </html>
